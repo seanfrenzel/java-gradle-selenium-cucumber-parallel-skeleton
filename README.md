@@ -48,7 +48,6 @@ NOTE: Unable to run iOS on windows\
 **Input command lines into powershell**\
 _restart pc if npm is not found_
 * `npm install npm@latest -g`
-* `npm install appium@latest -g`
 * `npm install selenium-standalone@latest -g`
 * `selenium-standalone install`
 
@@ -132,13 +131,7 @@ We can also use program arguments to get screenshots or to only run specific tes
         - `beforeAll()` sets and created data, drivers, and variables for test run.
         - `afterAll()` Setup will be set to false after all tests ran. The driver will be quit. On scenario failure a screenshot will be taken.
         
-        
+    
 - **PageObjectBase:**
     - This houses general use methods. The constructor sets the driver variable so this class can be used as a super. 
     - `getField(elementField)` Is how we use string parameters in gherkin steps to use elements on pages/modules
-    
-- **Pages Abstract Classes**
-    - We use abstract classes to perform different logic on each platform when needed. 
-    - There is an Abstract Class for each screen/page used. Methods used for both platform are stored in the abstract classes, then overridden on the platforms class.
-    - The step classes choose which class to use based off the set platform
-        - Example: The Abstract `ExamplePage` has abstract method`assertPagePresent()` which is overridden in `ExamplePageWeb` for that platforms needed functionality. 
