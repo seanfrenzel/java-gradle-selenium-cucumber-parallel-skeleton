@@ -1,13 +1,13 @@
 {
-  "username": "usernameHere",
-  "password": "passwordHere",
-  "placeholderForOtherData": "placeholder",
+  "username": "notSet",
+  "password": "notSet",
+  "placeholderForOtherData": "notSet",
   "placeholderForListData": [
-    "placeholder",
-    "placeholder"
+    "notSet",
+    "notSet"
   ],
   "PlaceholderForChildClassData": {
-    "childClassDataEX": "placeholder",
-    "childClassDataEX2": "placeholder"
+    "childClassDataEX": "notSet",
+    "childClassDataEX2": "notSet"
   }
 }
