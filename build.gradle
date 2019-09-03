@@ -1,0 +1,84 @@
+plugins {
+    id 'java'
+    id 'idea'
+}
+
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-dbcp2
+    compile group: 'org.apache.commons', name: 'commons-dbcp2', version: '2.6.0'
+
+    // https://mvnrepository.com/artifact/io.cucumber/cucumber-jvm
+    compile group: 'io.cucumber', name: 'cucumber-jvm', version: '4.4.0', ext: 'pom'
+
+    // https://mvnrepository.com/artifact/junit/junit
+    compile group: 'junit', name: 'junit', version: '4.12'
+
+    // https://mvnrepository.com/artifact/io.appium/java-client
+    compile group: 'io.appium', name: 'java-client', version: '7.1.0'
+
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-text
+    compile group: 'org.apache.commons', name: 'commons-text', version: '1.6'
+
+    // https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-server
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-server', version: '4.0.0-alpha-1'
+
+    // https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'
+
+    // https://mvnrepository.com/artifact/io.github.bonigarcia/webdrivermanager
+    compile group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '3.6.1'
+
+    // https://mvnrepository.com/artifact/org.assertj/assertj-core
+    testCompile group: 'org.assertj', name: 'assertj-core', version: '3.12.2'
+
+    // https://mvnrepository.com/artifact/io.cucumber/cucumber-java
+    testCompile group: 'io.cucumber', name: 'cucumber-java', version: '4.4.0'
+
+    // https://mvnrepository.com/artifact/io.cucumber/cucumber-junit
+    testCompile group: 'io.cucumber', name: 'cucumber-junit', version: '4.4.0'
+
+    // https://mvnrepository.com/artifact/io.cucumber/cucumber-picocontainer
+    testCompile group: 'io.cucumber', name: 'cucumber-picocontainer', version: '4.4.0'
+
+    testImplementation 'io.cucumber:cucumber-java:4.4.0'
+    testImplementation 'io.cucumber:cucumber-junit:4.4.0'
+}
+
+configurations {
+    cucumberRuntime {
+        extendsFrom testImplementation
+    }
+}
+
+/**
+ * Example Command Line for test run:
+ * gradlew -DdeviceName"chrome" -Dcucumber.options="--tags @NeatGifTest" build clean cucumber
+ */
+task cucumber() {
+    dependsOn assemble, compileTestJava
+    doLast {
+        javaexec {
+            main = "cucumber.api.cli.Main"
+            classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+            systemProperty "cucumber.options", System.properties.getProperty("cucumber.options")
+            systemProperties(System.properties as Map<String, ?>)
+            args = ['-p', 'pretty',
+                    '-p', 'junit:TestResults/Reports/cucumber-junit.xml',
+                    '-p', 'html:TestResults/Reports/cucumber-html',
+                    '-p', 'json:TestResults/Reports/cucumber-report.json',
+                    '-g', 'gradle.cucumber',
+                    '-g', 'core.utilities.setup',
+                    '-g', 'core.steps',
+                    'src/test/resources',
+                    '-t', '@test']
+        }
+    }
+}

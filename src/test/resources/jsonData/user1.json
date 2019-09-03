@@ -1,0 +1,13 @@
+{
+  "username": "usernameHere",
+  "password": "passwordHere",
+  "placeholderForOtherData": "placeholder",
+  "placeholderForListData": [
+    "placeholder",
+    "placeholder"
+  ],
+  "PlaceholderForChildClassData": {
+    "childClassDataEX": "placeholder",
+    "childClassDataEX2": "placeholder"
+  }
+}

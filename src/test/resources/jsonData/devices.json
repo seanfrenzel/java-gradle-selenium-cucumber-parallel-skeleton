@@ -1,0 +1,13 @@
+{
+  "chrome": {
+    "browserName": "chrome",
+    "chromeOptions": {
+      "args": [
+        "--start-maximized"
+      ]
+    }
+  },
+  "firefox": {
+    "browserName": "firefox"
+  }
+}
