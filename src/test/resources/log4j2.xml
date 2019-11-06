@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Logger configurations file, configure the Logger to use specific configurations and functionality here-->
+
+<Configuration status="WARN">
+    <Appenders>
+
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout
+                    pattern="%black{%highlight{[%-5level]}}: %magenta{[%logger{36}]} %magenta{[%M]} %magenta{[%line]}: %white{%msg}%n"
+            />
+        </Console>
+
+        <RollingFile name="File" fileName="TestResults/logs/TestRunLog.log"
+                     filePattern="TestResults/logs/TestRunLog.log">
+            <PatternLayout
+                    pattern="[%-5level]: [%logger{36}] [%M] [%line]: %msg%n"/>
+            <Policies>
+                <OnStartupTriggeringPolicy/>
+            </Policies>
+        </RollingFile>
+
+    </Appenders>
+
+    <Loggers>
+        <Root level="WARN">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
+        </Root>
+    </Loggers>
+
+</Configuration>

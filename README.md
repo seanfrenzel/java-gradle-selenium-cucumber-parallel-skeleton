@@ -1,32 +1,27 @@
 Java-Cucumber
 ======
-Test automation skeleton for java-cucumber
+Built using Java, Selenium, Gradle, Cucumber.
+
+Web Page Object based test automation skeleton
 
 Resources
 ---
+- [Git](https://git-scm.com/docs)
+- [Gradle](https://docs.gradle.org/current/userguide/userguide.html)
 - [Cucumber-JVM](https://cucumber.io/docs/reference/jvm)
 - [Cucumber-JVM API](http://cucumber.github.io/api/cucumber/jvm/javadoc/)
 
-Setup
----
-**Install** [IntelliJ](https://www.jetbrains.com/idea/download):
-\
-Install cucumber plugin
-_`Preferences`_ > _`Plugins`_ > _`Cucumber for Java`_
 
-Environment variables
----
-**We will use npm to install needed packages:**
-[install _current_ Node.js](https://nodejs.org/en/)
+#Setup
+##
+[Download and get Java installed from here](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
 
-#### Mac OSX:
+## `Mac OSX`:
 **1.** Open a terminal and proceed with the following:
 `$ open ~/.bash_profile
 `\
 **2.** Set environment variables
 ```
-export ANDROID_HOME=/path/to/your/android/sdk
-export ANDROID_SDK_ROOT=$ANDROID_HOME
 export JAVA_HOME=$(/usr/libexec/java_home)
 export PATH=${PATH}:$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$JAVA_HOME/bin
 ```
@@ -35,22 +30,9 @@ export PATH=${PATH}:$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/pla
 - **Homebrew**: 
 `$ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
     - After installation: `$ brew doctor` should state `Your system is ready to brew`
-- **Node**:`$ brew install node`
 - **Git**:`$ brew install git`
-- **libimobiledevice - iOS**:`$ brew install libimobiledevice`
-- **carthage - iOS**:`$ brew install carthage`
-- **ios-deploy - iOS**:`$ npm install -g ios-deploy`
-    - ios-deploy should be global.
     
-#### Windows OS:
-NOTE: Unable to run iOS on windows\
-
-**Input command lines into powershell**\
-_restart pc if npm is not found_
-* `npm install npm@latest -g`
-* `npm install selenium-standalone@latest -g`
-* `selenium-standalone install`
-
+## `Windows OS`:
 **Set windows variables:**
 1. open _powershell as admin_ > enter `rundll32 sysdm.cpl,EditEnvironmentVariables` to open windows variables
 2. set the following for `SYSTEM VARIABLES`
@@ -58,80 +40,85 @@ _restart pc if npm is not found_
 Variable name -> JAVA_HOME
 Variable path -> path\to\javaSDK
 ```
-* set the following for `USER VARIABLES`
-```
-Variable name -> ANDROID_HOME
-Variable path -> path\to\androidSDK
-```
 3. Select `Path` in `SYSTEM Variables` and click `Edit` then click `New` and enter the following for the variables created:
  ```
 %JAVA_HOME%\bin
 ```
-4. Select `Path` in `USER Variables` and click `Edit` then click `New` and enter the following for the variables created:
- ```
-%ANDROID_HOME%\emulator
-%ANDROID_HOME%\tools
-%ANDROID_HOME%\platform-tools
-```
+
+##Git Clone Project
+#####You will need to download and install Git
+- [Install Git For Windows Here](https://git-scm.com/download/win) 
+1. Click on `clone or download button`(_green button below contributor_) and copy the `HTTP` url
+    - if you are having trouble finding it then copy this url and replace the `placeholderUsername` with your own
+        - `https://github.com/placeholderUsername/java-selenium-cucumber-skeleton.git`
+2. Open your CLI(command line interface) and `cd` into the `directory/folder` where you want to download this project (It is recommended to create a directory for your git projects). 
+    - Ex: `cd git-projects`
+3. Use git clone to download the project with the following command with your username
+    - `git clone https://github.com/placeholderUsername/java-selenium-cucumber-skeleton.git`
+
+##**Install** [IntelliJ](https://www.jetbrains.com/idea/download):       
+
+Install cucumber plugins
+_`Preferences/Settings`_ > _`Plugins`_ > _`Marketplace`_:
+- _`Cucumber for Java`_
+- _`google-java-format`_
+    - **How to use**: Enable the plugin in `Other Settings` 
+        - `Ctrl + Alt + L` to format or `right click on file` > `Reformat Code`
     
 Usage:
 ---
 #### **Local**
-- Start Selenium Session
-    - Install Selenium: `$ selenium-standalone install`
-    - Start Selenium: `$ selenium-standalone start`
-    
+- Selenium server will automatically bootup and run instanced driver.
+     
 Running tests
 ----  
 **Gradle Wrapper Command Line Test Runs** 
 - Open your `Terminal` and `cd`(_**change directory**_) to `project path` on your system
-- Example: `C:\Users\yourUserHere\git-projects\project`
-    - now that we are in the project directory we can use `gradlew` commands! 
-        - Tryout this command to run the example test! 
-        ```
-        gradlew -DdeviceName"chrome" -Dcucumber.options="--tags @NeatGifTest" build clean cucumber
-        ```  
-        - You can also enter user info from the CLI if you don't want to use the JSON file as shown below 
-        ```
-        gradlew -DdeviceName"chrome" -Dusername="bob" -Dpassword="HOTsauce100" -Dcucumber.options="--tags @NeatGifTest" build clean cucumber
-        ```   
+- Example: `C:\Users\yourUserHere\git-projects\projectName`
+    - now that we are in the project directory we can use `gradlew build cucumber` to get more info about the project and how to run tests with it. 
         - **NOTE:** use `.\gradlew` with powershell !!!
         
-- Reports and screenshots are located here for local viewing!!! ```C:\Users\yourUserHere\git-projects\hydrolator\TestResults```
-            - `Reports\cucumber-html` will contain an `index.html` that you can open in a browser        
-
+- Reports and screenshots are located here for local viewing!!! ```C:\Users\yourUserHere\git-projects\projectName\TestResults```
+            
+- Run This Command Line Example for Help Documentation
+    ```
+    gradlew cucumber
+    ```            
+        
 **IntelliJ**
 \
 Create a run configuration. This will allow you to run Scenarios by right clicking them and selecting run in IntelliJ   
-- Create new Cucumber Java run configuration: `Run` > `Edit Configurations`
-    - Main class: `cucumber.api.cli.Main`
-    - Glue: `core.utilities.setup core.steps`
+- Create new Cucumber Java run configuration: `Run` > `Edit Configurations` > `Templates` > `Cucumber Java`
+    - Main class: `io.cucumber.core.cli.Main`
+    - Glue: `core.setup core.test.steps`
+    - Program Arguments _(copy and paste this into the program arguments after expanding)_
+    ```
+    -p
+    pretty
+    --add-plugin
+    de.monochromata.cucumber.report.PrettyReports:TestResults/Reports/cucumber-html
+    -p
+    json:TestResults/Reports/cucumber-report.json
+    ```
     - Feature or folder path: `/path/to/features` 
         - Example `/Users/your_username/project_name/src/test/resources/features`
 
-We can also use program arguments to get screenshots or to only run specific tests  
-- Example
-    ```
-     --plugin org.jetbrains.plugins.cucumber.java.run.CucumberJvm4SMFormatter --plugin html:target/cucumber-report/cucumber.html --monochrome --tags @TagsYouWantToRun
-    ```
-
 **Framework Workflow**
 ----  
-- **Config:**
-    - This is where we _**create the desired capabilities**_ for our devices based of the current platform. 
-        - `getDeviceCapabilities()` deserializes _`jsonData/devices.json`_ JSON data
-        
-        
-- **Factory:**
-    - We use the set _** capabilities**_ to _**create the driver**_ here
-        - `createDriver()` will create the driver for the current platform     
+- **Config:** (_`core/utilities/setup/Config.java`_)
+    - This is where we _**create the desired capabilities**_ for our devices based off the current platform. 
+        - `getDeviceCapabilities()` deserializes _`jsonData/devices.json`_ JSON data 
      
-- **Hooks:**
+- **Hooks:** (_`core/utilities/setup/Hooks.java`_)
     - We use the _**created driver**_ from _**DriverFactory**_ to set the _**RemoteWebdriver**_ and perform actions based on test conditions. 
-        - `beforeAll()` sets and created data, drivers, and variables for test run.
-        - `afterAll()` Setup will be set to false after all tests ran. The driver will be quit. On scenario failure a screenshot will be taken.
+        - `beforeAll()` configures data, drivers, and variables for test run.
+        - `afterAll()` Setup will be set to false after all tests ran and The driver will be quit. On scenario failure a screenshot will be taken
         
-    
-- **PageObjectBase:**
+- **CommonSteps:** (_`core/test/steps/common/CommonSteps.java`_)
+    - Common general use steps that can be reused for any page/module. 
+    - When creating a scenario in the feature file enter `common` to see the list of common steps to use
+        
+- **PageObjectBase:** (_`core/base/PageObjectBase.java`_)
     - This houses general use methods. The constructor sets the driver variable so this class can be used as a super. 
     - `getField(elementField)` Is how we use string parameters in gherkin steps to use elements on pages/modules
+

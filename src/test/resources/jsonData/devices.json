@@ -8,6 +8,20 @@
     }
   },
   "firefox": {
-    "browserName": "firefox"
+    "browserName": "firefox",
+    "firstMatch": [
+      {
+        "platformName": "macos"
+      },
+      {
+        "platformName": "linux"
+      },
+      {
+        "platformName": "windows"
+      },
+      {
+        "platformName": "windows_nt"
+      }
+    ]
   }
 }

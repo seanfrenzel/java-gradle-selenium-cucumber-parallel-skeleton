@@ -1,6 +1,6 @@
-package core.pages.exampleModules;
+package core.test.pages.modules;
 
-import core.base.PageObjectBase;
+import core.test.pages.base.PageObjectBase;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 
