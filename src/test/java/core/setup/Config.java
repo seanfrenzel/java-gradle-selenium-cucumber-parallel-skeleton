@@ -47,7 +47,7 @@ public class Config {
   /** sets Web Desired Capabilities */
   void setCapabilities() {
     logger().traceEntry();
-    deviceName = getProperty("deviceName", "firefox");
+    deviceName = getProperty("deviceName", "chrome");
     capabilities = getDeviceCapabilities(deviceName);
     url = getProperty("seleniumGrid", "http://localhost:4444/wd/hub");
     logger().traceExit();
