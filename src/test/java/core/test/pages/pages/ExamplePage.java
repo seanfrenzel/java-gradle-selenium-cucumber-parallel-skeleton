@@ -36,7 +36,8 @@ public class ExamplePage extends PageObjectBase {
   }
 
   public void openNeatGif() {
-    assertDisplayed(gifs.get(0), 5).click();
+    waitForStale(gifs.get(0), 5);
+    gifs.get(0).click();
 
     /**
      * DO NOT USE THIS. It is only meant to show the gif that we found and clicked on as a visual
