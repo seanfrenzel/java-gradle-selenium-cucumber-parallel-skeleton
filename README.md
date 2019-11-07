@@ -12,8 +12,8 @@ Resources
 - [Cucumber-JVM API](http://cucumber.github.io/api/cucumber/jvm/javadoc/)
 
 
-#Setup
-##
+Setup
+---
 [Download and get Java installed from here](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
 
 ## `Mac OSX`:
