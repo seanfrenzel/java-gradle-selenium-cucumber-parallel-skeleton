@@ -25,8 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static core.utilities.Tools.*;
 import static java.util.stream.Collectors.toList;
-import static org.openqa.selenium.support.ui.ExpectedConditions.not;
-import static org.openqa.selenium.support.ui.ExpectedConditions.stalenessOf;
+import static org.openqa.selenium.support.ui.ExpectedConditions.*;
 
 public abstract class PageObjectBase {
   public RemoteWebDriver driver;
@@ -755,10 +754,19 @@ public abstract class PageObjectBase {
    */
   public void waitForStale(WebElement element, int seconds) {
     logger().traceEntry();
-    fluentWait(seconds, 1)
-        .until(
-            ExpectedConditions.or(
-                stalenessOf(element), ExpectedConditions.not(stalenessOf(element))));
+    fluentWait(seconds, 1).until(stalenessOf(element));
+    logger().traceExit();
+  }
+
+  /**
+   * waits for an element to become stale for 1 second. If it does not become stale it throws the
+   * exception and continues.
+   *
+   * @param element to wait for staleness of
+   */
+  public void waitForRefresh(WebElement element, int seconds) {
+    logger().traceEntry();
+    fluentWait(seconds, 1).until(refreshed(ExpectedConditions.visibilityOf(element)));
     logger().traceExit();
   }
 
