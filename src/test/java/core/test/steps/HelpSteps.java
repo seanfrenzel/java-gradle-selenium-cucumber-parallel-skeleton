@@ -57,10 +57,10 @@ public class HelpSteps {
         "     * -logLevel=\"trace\""
             + "\n         > Log level to be set. Default level is [WARN] and other options are: [all, debug, error, fatal, warn, info, off, trace]. Log files are saved under reports!!!\n");
     examples.add(
-        "     * -Dcucumber.options=\"-t @tagsToRun\" build clean cucumber"
+        "     * -Dcucumber.options=\"-t @tagsToRun\" clean cucumber"
             + "\n         > Set cucumber options\n");
     examples.add(
-        "     * gradlew cucumber -Dusername=\"username\" -Dpassword=\"password\" -Denv=\"urlOrEnvHere\" -Dcucumber.options=\"-t @NeatGifTest\" build clean"
+        "     * gradlew cucumber -Dusername=\"username\" -Dpassword=\"password\" -Denv=\"urlOrEnvHere\" -Dcucumber.options=\"-t @NeatGifTest\" clean"
             + "\n         > Run [cucumber] test with [system properties] and [cucumber options] with a different user than the one in json\n");
 
     System.out.printf("%n--> Command line use examples:%n");
