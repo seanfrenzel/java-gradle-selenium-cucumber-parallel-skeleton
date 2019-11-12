@@ -45,8 +45,9 @@ Variable path -> path\to\javaSDK
 %JAVA_HOME%\bin
 ```
 
-##Git Clone Project
-#####You will need to download and install Git
+## Git Clone Project
+
+##### You will need to download and install Git
 - [Install Git For Windows Here](https://git-scm.com/download/win) 
 1. Click on `clone or download button`(_green button below contributor_) and copy the `HTTP` url
     - if you are having trouble finding it then copy this url and replace the `placeholderUsername` with your own
