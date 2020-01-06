@@ -10,36 +10,40 @@ sourceCompatibility = 1.8
 repositories {
     mavenCentral()
 }
+
 dependencies {
     // https://mvnrepository.com/artifact/junit/junit
-    compile group: 'junit', name: 'junit', version: '4.12'
+    implementation group: 'junit', name: 'junit', version: '4.12'
 
     // https://mvnrepository.com/artifact/de.monochromata.cucumber/reporting-plugin
-    compile group: 'de.monochromata.cucumber', name: 'reporting-plugin', version: '3.0.7'
+    implementation group: 'de.monochromata.cucumber', name: 'reporting-plugin', version: '3.0.7'
 
     // https://mvnrepository.com/artifact/io.cucumber/cucumber-jvm
-    compile group: 'io.cucumber', name: 'cucumber-jvm', version: '4.7.4', ext: 'pom'
+    implementation group: 'io.cucumber', name: 'cucumber-jvm', version: '4.7.4', ext: 'pom'
 
     // https://mvnrepository.com/artifact/org.apache.commons/commons-text
-    compile group: 'org.apache.commons', name: 'commons-text', version: '1.8'
+    implementation group: 'org.apache.commons', name: 'commons-text', version: '1.8'
 
     // https://mvnrepository.com/artifact/org.apache.commons/commons-dbcp2
-    compile group: 'org.apache.commons', name: 'commons-dbcp2', version: '2.7.0'
+    implementation group: 'org.apache.commons', name: 'commons-dbcp2', version: '2.7.0'
 
     // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.12.1'
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.12.1'
 
     // https://mvnrepository.com/artifact/io.github.bonigarcia/webdrivermanager
-    compile group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '3.7.1'
+    implementation group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '3.7.1'
 
     // https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-server
-    compile group: 'org.seleniumhq.selenium', name: 'selenium-server', version: '4.0.0-alpha-1'
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-server', version: '4.0.0-alpha-1'
+
+    // https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12
+    testImplementation group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.29'
 
     // https://mvnrepository.com/artifact/org.assertj/assertj-core
-    testCompile group: 'org.assertj', name: 'assertj-core', version: '3.13.2'
+    testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.13.2'
 
     // https://mvnrepository.com/artifact/io.cucumber/cucumber-picocontainer
-    testCompile group: 'io.cucumber', name: 'cucumber-picocontainer', version: '4.7.4'
+    testImplementation group: 'io.cucumber', name: 'cucumber-picocontainer', version: '4.7.4'
 
     // needed for run time on tests but is included within cucumber-jvm
     testImplementation 'io.cucumber:cucumber-java:4.7.4'
@@ -53,11 +57,33 @@ configurations {
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Cucumber tasks and variables to set tag expressions and env before running //
+////////////////////////////////////////////////////////////////////////////////
+def cucumberOptions = ['-p', 'pretty',
+                       '--add-plugin', 'de.monochromata.cucumber.report.PrettyReports:TestResults/Reports/cucumber-html',
+                       '-p', 'json:TestResults/Reports/cucumber-report.json',
+                       '-g', 'gradle.cucumber',
+                       '-g', 'core.setup',
+                       '-g', 'core.test.steps',
+                       'src/test/resources',]
+
+def cucumberTagExpression = ['-t', '@Web']
+
+def availableThreadCount = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+
+def cucumberThreadsOption = ['--threads', availableThreadCount.toString()]
+
+def setParallel = "false"
+
+def setEnv = '\"https://gfycat.com/\"'
+
 /**
- * Task that runs cucumber with input -Dcucumber.options="argsHere" and creates a report
+ * Task that runs cucumber with given cucumber.options
  *
- * Example Command Line for test run if using sensitive credentials:
- * gradlew cucumber -Dusername="usernameToUse" -Dpassword="passwordToUse" -Denv="envtoUse" -Dcucumber.options="-t tagHere" build clean
+ * Example Command Line for test run:
+ * gradlew clean build cucumber giphyEnv neatGifTest cucumber
+ *
  */
 task cucumber() {
     dependsOn assemble, compileTestJava
@@ -66,15 +92,60 @@ task cucumber() {
             main = "io.cucumber.core.cli.Main"
             classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
             systemProperty "cucumber.options", System.properties.getProperty("cucumber.options")
+            systemProperty "env", System.properties.getProperty("env", setEnv)
+            systemProperty "parallel", System.properties.getProperty("parallel", setParallel)
             systemProperties(System.properties as Map<String, ?>)
-            args = ['-p', 'pretty',
-                    '--add-plugin', 'de.monochromata.cucumber.report.PrettyReports:TestResults/Reports/cucumber-html',
-                    '-p', 'json:TestResults/Reports/cucumber-report.json',
-                    '-g', 'gradle.cucumber',
-                    '-g', 'core.setup',
-                    '-g', 'core.test.steps',
-                    'src/test/resources',
-                    '-t', '@Help']
+            cucumberOptions.addAll(cucumberTagExpression)
+            if (setParallel == "true") cucumberOptions.addAll(cucumberThreadsOption)
+            args = cucumberOptions
         }
     }
 }
+
+/**
+ * runs the build in parallel if used
+ */
+task runInParallel() {
+    group = 'Cucumber Parallel'
+    description = 'Runs build in parallel if used'
+    doLast {
+        setParallel = "true"
+    }
+}
+
+///////////////////////////////////////////////////////
+// Tasks to set tag expressions before cucumber task //
+///////////////////////////////////////////////////////
+//<editor-fold desc="Tag Expressions">
+task neatGifTest() {
+    group = 'Cucumber TagExpressions'
+    description = 'Sets @NeatGifTest tests to be ran'
+    doLast {
+        cucumberTagExpression = ['-t', '@NeatGifTest']
+    }
+}
+
+task gradleCommandLineExample() {
+    group = 'Cucumber Help'
+    description = '''Command Line Examples
+
+-> [ENV] and [CucumberTagExpressions] tasks must be called before task [cucumber] !!!
+
+-> gradlew clean build [ENV] [CucumberTagExpressions] cucumber
+    *Example: gradlew clean build giphyEnv neatGifTest cucumber
+    *Example Remote: gradlew clean build giphyEnv neatGifTest cucumber -DisRemote="true"
+    *Parallel Example: gradlew clean build runInParallel giphyEnv neatGifTest cucumber"'''
+}
+//</editor-fold>
+
+
+///////////////////////////////////////////
+// Tasks to set env before cucumber task //
+///////////////////////////////////////////
+//<editor-fold desc="Env's">
+task giphyEnv() {
+    group = 'Cucumber ENV'
+    description = 'Sets ENV to giphy'
+    doLast { setEnv = '\"https://gfycat.com/\"' }
+}
+//</editor-fold>

@@ -6,14 +6,14 @@
 
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout
-                    pattern="%black{%highlight{[%-5level]}}: %magenta{[%logger{36}]} %magenta{[%M]} %magenta{[%line]}: %white{%msg}%n"
+                    pattern="[Thread %tid][%-5level]: [%logger{1}] [%M] [%line]: %msg%n"
             />
         </Console>
 
         <RollingFile name="File" fileName="TestResults/logs/TestRunLog.log"
                      filePattern="TestResults/logs/TestRunLog.log">
             <PatternLayout
-                    pattern="[%-5level]: [%logger{36}] [%M] [%line]: %msg%n"/>
+                    pattern="[Thread %tid][%-5level]: [%logger{1}] [%M] [%line]: %msg%n"/>
             <Policies>
                 <OnStartupTriggeringPolicy/>
             </Policies>

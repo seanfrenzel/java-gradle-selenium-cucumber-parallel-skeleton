@@ -28,6 +28,7 @@ public class Config {
   public static String PASSWORD = getProperty("password", "notSet");
   public static String PROD_USER = getProperty("user", "user1Prod");
   private static String env = getProperty("env", "https://gfycat.com/");
+  Boolean parallel = Boolean.parseBoolean(getProperty("parallel", "false"));
   public static final Boolean IS_REMOTE = Boolean.parseBoolean(getProperty("isRemote", "false"));
 
   private static String deviceName;
@@ -40,7 +41,6 @@ public class Config {
    */
   public Config() {
     logger().traceEntry();
-    Logger.getLogger("org.openqa.core.remote").setLevel(Level.OFF);
     logger().traceExit();
   }
 

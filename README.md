@@ -2,7 +2,7 @@ Java-Cucumber
 ======
 Built using Java, Selenium, Gradle, Cucumber.
 
-Web Page Object based test automation skeleton
+Web Page Object based test automation skeleton with parallel option
 
 Resources
 ---
@@ -15,6 +15,7 @@ Resources
 Setup
 ---
 [Download and get Java installed from here](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
+(you can use other jdk's. This is to just get you started)
 
 ## `Mac OSX`:
 **1.** Open a terminal and proceed with the following:
@@ -69,21 +70,27 @@ _`Preferences/Settings`_ > _`Plugins`_ > _`Marketplace`_:
 Usage:
 ---
 #### **Local**
-- Selenium server will automatically bootup and run instanced driver.
-     
-Running tests
+- Local drivers are created automatically and you should not need to do anything other than supply the deviceName
+
+#### **Remote**
+- Start Selenium Session
+    - Set `-DisRemote="true"` in CLI (command line interface)
+    - Install Selenium: `$ selenium-standalone install`
+    - Start Selenium: `$ selenium-standalone start`     
+
+**Running tests**
 ----  
 **Gradle Wrapper Command Line Test Runs** 
 - Open your `Terminal` and `cd`(_**change directory**_) to `project path` on your system
 - Example: `C:\Users\yourUserHere\git-projects\projectName`
-    - now that we are in the project directory we can use `gradlew build cucumber` to get more info about the project and how to run tests with it. 
+    - now that we are in the project directory we can use `gradlew tasks` to get more info about the project and how to run tests with it. Locate the cucumber groups!  
         - **NOTE:** use `.\gradlew` with powershell !!!
         
 - Reports and screenshots are located here for local viewing!!! ```C:\Users\yourUserHere\git-projects\projectName\TestResults```
             
-- Run This Command Line Example for Help Documentation
+- Run the project with this command
     ```
-    gradlew cucumber
+    gradlew clean build giphyEnv neatGifTest cucumber
     ```            
         
 **IntelliJ**
@@ -101,7 +108,7 @@ Create a run configuration. This will allow you to run Scenarios by right clicki
     -p
     json:TestResults/Reports/cucumber-report.json
     ```
-    - Feature or folder path: `/path/to/features` 
+    - Feature or folder path: `/path/to/features`
         - Example `/Users/your_username/project_name/src/test/resources/features`
 
 **Framework Workflow**
@@ -111,13 +118,9 @@ Create a run configuration. This will allow you to run Scenarios by right clicki
         - `getDeviceCapabilities()` deserializes _`jsonData/devices.json`_ JSON data 
      
 - **Hooks:** (_`core/utilities/setup/Hooks.java`_)
-    - We use the _**created driver**_ from _**DriverFactory**_ to set the _**RemoteWebdriver**_ and perform actions based on test conditions. 
-        - `beforeAll()` configures data, drivers, and variables for test run.
-        - `afterAll()` Setup will be set to false after all tests ran and The driver will be quit. On scenario failure a screenshot will be taken
-        
-- **CommonSteps:** (_`core/test/steps/common/CommonSteps.java`_)
-    - Common general use steps that can be reused for any page/module. 
-    - When creating a scenario in the feature file enter `common` to see the list of common steps to use
+    - We use the _**createDriver**_ from _**CreateSharedDrivers**_ to set the _**drivers**_ and perform actions based on test conditions. 
+        - `beforeScenario()` configures data, drivers, and variables for test run.
+        - `afterScenario()` Setup will be set to false after all tests ran and The driver will be quit. On scenario failure a screenshot will be taken
         
 - **PageObjectBase:** (_`core/base/PageObjectBase.java`_)
     - This houses general use methods. The constructor sets the driver variable so this class can be used as a super. 

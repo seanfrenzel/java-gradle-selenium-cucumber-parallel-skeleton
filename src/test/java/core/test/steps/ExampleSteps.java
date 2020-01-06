@@ -10,10 +10,10 @@ public class ExampleSteps {
   private ExamplePage page;
 
   public ExampleSteps(ExamplePage page) {
-    this.page = new ExamplePage();
+    this.page = page;
   }
 
-  @Given("the user navigates to the website/app")
+  @Given("the user navigates to Giphy")
   public void theUserNavigatesToTheSite() {
     page.navigateHere();
   }
@@ -26,5 +26,20 @@ public class ExampleSteps {
   @And("opens a Neat GIF")
   public void opensANeatGIF() {
     page.openNeatGif();
+  }
+
+  @And("enters {string} text into {string} on ExamplePage")
+  public void entersTextIntoOnExamplePage(String text, String elementField) {
+    page.getElement(elementField).sendKeys(text);
+  }
+
+  @And("clicks {string} on ExamplePage")
+  public void clicksOnExamplePage(String elementField) {
+    page.click(page.getElement(elementField));
+  }
+
+  @Then("waits {int}s to verify {string} is displayed on ExamplePage")
+  public void waitsSToVerifyIsDisplayedOnExamplePage(int waitSec, String elementField) {
+    page.assertDisplayed(page.getElement(elementField), waitSec);
   }
 }

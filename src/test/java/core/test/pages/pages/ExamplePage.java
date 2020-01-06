@@ -10,19 +10,19 @@ import java.util.List;
 public class ExamplePage extends PageObjectBase {
 
   @FindBy(css = "div.logo")
-  private static WebElement logo;
+  private WebElement logo;
 
   @FindBy(css = "div.search-input-wrapper > input")
-  private static WebElement searchInput;
+  private WebElement searchInput;
 
   @FindBy(css = "div.video-player-container.player-container")
-  private static WebElement neatGif;
+  private WebElement neatGif;
 
   @FindBy(css = "button.search-button")
-  private static WebElement search;
+  private WebElement search;
 
   @FindBy(className = "grid-gfy-item")
-  private static List<WebElement> gifs;
+  private List<WebElement> gifs;
 
   @Override
   public void trait() {
@@ -36,8 +36,8 @@ public class ExamplePage extends PageObjectBase {
   }
 
   public void openNeatGif() {
-    waitForStale(gifs.get(0), 5);
-    gifs.get(0).click();
+    waitForStale(gifs.get(0), 1);
+    click(gifs.get(0));
 
     /**
      * DO NOT USE THIS. It is only meant to show the gif that we found and clicked on as a visual

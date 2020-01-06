@@ -1,43 +1,49 @@
 package core.setup;
 
 import core.test.data.TestData;
+import core.utilities.Tools;
 import io.cucumber.core.api.Scenario;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
-import io.github.bonigarcia.wdm.DriverManagerType;
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.SoftAssertions;
-import org.openqa.grid.internal.utils.configuration.StandaloneConfiguration;
-import org.openqa.grid.selenium.GridLauncherV3;
+import org.junit.Assume;
+import org.junit.AssumptionViolatedException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.remote.server.SeleniumServer;
-import org.seleniumhq.jetty9.util.log.JettyLogHandler;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static core.utilities.Tools.getDate;
 import static core.utilities.Tools.logger;
 import static java.lang.String.format;
 
 public class Hooks {
-  private static Scenario currentScenario;
+
+  public Scenario currentScenario;
   private boolean setup = false;
   private static boolean reportsCreated = false;
-  private static boolean isFirstServerRun = false;
-  private static RemoteWebDriver driver;
+
   private Config config;
   private static TestData testData;
   private static SoftAssertions softAssert;
-  private URL url;
-  private DesiredCapabilities capabilities;
+
+  static URL url;
+  static DesiredCapabilities capabilities;
+
+  // drivers and storedDrivers needed for parallel runs with multiple threads.
+  private static ThreadLocal<RemoteWebDriver> drivers = new ThreadLocal<>();
+  static List<RemoteWebDriver> storedDrivers = new ArrayList<>();
 
   public Hooks() {
     logger().traceEntry();
@@ -51,18 +57,23 @@ public class Hooks {
    * @throws MalformedURLException
    */
   @Before(order = 1)
-  public void beforeAll(Scenario scenario) throws MalformedURLException {
+  public void beforeScenario(Scenario scenario) throws MalformedURLException {
     if (!scenario.getName().equals("Help")) {
+      Logger.getLogger("org.openqa.selenium").setLevel(Level.OFF);
       manageResults();
 
       config = new Config();
       config.setLogLevel(config.logLevel);
       config.setCapabilities();
       softAssert = new SoftAssertions();
-
       setupEnvironment(scenario);
-      startStandaloneServerIfLocal();
-      createDriver();
+
+      if (config.parallel)
+        System.out.printf(
+            "[Thread %2d] Running -> [Scenario: %s]%n",
+            Thread.currentThread().getId(), currentScenario.getName());
+
+      new CreateSharedDrivers();
       logger().traceExit();
     }
   }
@@ -72,23 +83,39 @@ public class Hooks {
    *
    * @param scenario current scenario instance
    */
-  @After(order = 1)
-  public void afterAll(Scenario scenario) {
+  @After(order = 2)
+  public void afterScenario(Scenario scenario) {
     logger().traceEntry();
-    try {
 
-      if (!scenario.getName().equals("Help")) {
-        if (scenario.isFailed()) takeScreenshot();
-        if (!softAssert.errorsCollected().isEmpty()) softAssert.assertAll();
+    try {
+      if (scenario.isFailed()) {
+
+        if (config.parallel) {
+          System.out.printf(
+              "[Thread %2d] Running -> [Scenario: %s] - FAILED%n",
+              Thread.currentThread().getId(), currentScenario.getName());
+        }
+
+        takeScreenshot();
       }
+
+      if (!softAssert.errorsCollected().isEmpty()) softAssert.assertAll();
 
     } finally {
 
-      if (driver != null) {
-        logger().info(String.format("Driver:[%s] was quit", driver));
-        driver.quit();
+      if (config.parallel && !scenario.isFailed()) {
+        System.out.printf(
+            "[Thread %2d] Running -> [Scenario: %s] - PASSED%n",
+            Thread.currentThread().getId(), currentScenario.getName());
       }
 
+      if (getDriver() != null) {
+        getDriver().manage().deleteAllCookies();
+        getDriver().executeScript("window.sessionStorage.clear();");
+        getDriver().executeScript("window.localStorage.clear();");
+      }
+
+      /* drivers are shutdown when the test run is completed from shutdown hook in CreateSharedDrivers */
       setup = false;
       logger().traceExit();
     }
@@ -105,97 +132,33 @@ public class Hooks {
     if (!setup) {
       currentScenario = scenario;
 
-      this.url = new URL(config.getUrl());
-      logger().info(String.format("URL is:%s", this.url));
+      url = new URL(config.getUrl());
+      logger().trace(String.format("URL is:%s", url));
 
-      this.capabilities = new DesiredCapabilities(config.getCapabilities());
-      logger().info(String.format("Capabilities are:%s", this.capabilities));
+      capabilities = new DesiredCapabilities(config.getCapabilities());
+      logger().trace(String.format("Capabilities are:%s", capabilities));
 
       setup = true;
     }
 
     testData = new TestData(Config.USER);
-    logger().traceExit();
-  }
 
-  /** starts up the selenium-server-standalone */
-  private void startStandaloneServerIfLocal() {
-    boolean firstRunAndNotRemote = !isFirstServerRun && !Config.IS_REMOTE;
-
-    if (firstRunAndNotRemote) {
-      logger().traceEntry();
-
-      DriverManagerType driverType;
-      String deviceName = Config.getDeviceName().toUpperCase();
-
-      try {
-        driverType = DriverManagerType.valueOf(deviceName);
-
-      } catch (IllegalArgumentException e) {
-        throw new IllegalArgumentException(
-            String.format(
-                "Incorrect [%s] Driver type! Must be one of the following:%n*   %s%n*   %s%n*   %s%n*   %s%n*   %s%n*   %s%n*   %s%n",
-                deviceName,
-                "chrome",
-                "firefox",
-                "opera",
-                "edge",
-                "phantomjs",
-                "iexplorer",
-                "selenium_server_standalone"));
-      }
-
-      WebDriverManager.getInstance(driverType).setup();
-
-      SeleniumServer server = new SeleniumServer(new StandaloneConfiguration());
-
-      if (!server.isStarted()) {
-        GridLauncherV3.main(new String[] {});
-        isFirstServerRun = true;
-        JettyLogHandler.config();
-        silenceDriverLogs();
-      }
-
-      logger().traceExit(server.getUrl());
-    }
-  }
-
-  private void silenceDriverLogs() {
-    switch (Config.getDeviceName().toLowerCase()) {
-      case "chrome":
-        System.setProperty("webdriver.chrome.silentOutput", "true");
-        break;
-      case "firefox":
-        System.setProperty("webdriver.firefox.marionette", "true");
-        System.setProperty("webdriver.firefox.logfile", "/dev/null");
-        break;
-    }
-  }
-
-  /** creates diver with given capabilities */
-  private void createDriver() {
-    logger().traceEntry();
-
-    setDriver(new RemoteWebDriver(url, capabilities));
     logger().traceExit();
   }
 
   /** takes screenshot in multiple formats */
-  public static void takeScreenshot() {
+  public void takeScreenshot() {
     logger().traceEntry();
-
     fileScreenshot();
     embedScreenshot();
-
     logger().traceExit();
   }
 
   /** takes screenshot in file format */
-  private static void fileScreenshot() {
+  private void fileScreenshot() {
     logger().traceEntry();
-
     try {
-      File scrFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+      File scrFile = ((TakesScreenshot) Hooks.getDriver()).getScreenshotAs(OutputType.FILE);
       String fileName =
           format(
                   "./TestResults/ScreenShots/Feature_%s_Line%s_Time[%s].png",
@@ -206,28 +169,24 @@ public class Hooks {
     } catch (WebDriverException | IOException | NullPointerException e) {
       System.out.println("Failed to take file Screenshot");
     }
-
-    logger().traceExit();
   }
 
   /** takes screenshot and embeds it */
-  public static void embedScreenshot() {
+  private void embedScreenshot() {
     logger().traceEntry();
-
     try {
-      final byte[] screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
+      final byte[] screenshot =
+          ((TakesScreenshot) Hooks.getDriver()).getScreenshotAs(OutputType.BYTES);
       currentScenario.embed(screenshot, "image/png");
     } catch (WebDriverException | NullPointerException e) {
       System.out.println("Failed to take embed Screenshot");
     }
-
     logger().traceExit();
   }
 
   /** removes previously created reports and temp files */
   private void manageResults() {
     logger().traceEntry();
-
     if (!reportsCreated) {
       try {
         FileUtils.deleteDirectory(new File("./TestResults"));
@@ -240,12 +199,34 @@ public class Hooks {
       } catch (IOException e) {
         System.err.println("Failed to create TestResults file directory");
       }
-      reportsCreated = true;
-    }
 
+      reportsCreated = true;
+      logger().traceExit();
+    }
+  }
+
+  /** skips a scenario if not valid for current run */
+  private void skipScenario(Scenario scenario, String errorReason) {
+    logger().traceEntry();
+    try {
+      Assume.assumeTrue(false);
+    } catch (AssumptionViolatedException e) {
+      throw new AssumptionViolatedException(
+          Tools.border("- Scenario: %s%n- Was skipped for: %s", scenario.getName(), errorReason));
+    }
     logger().traceExit();
   }
   // </editor-fold>
+
+  // <editor-fold desc="@Tag Hooks">
+  /** Skip Scenario if Tagged @wip */
+  @Before("@wip")
+  public void wipSkip(Scenario scenario) {
+    logger().traceEntry();
+    skipScenario(scenario, "being @wip");
+    logger().traceExit();
+  }
+  // </editor-fold>-
 
   // <editor-fold desc="Get And Sets">
   public static SoftAssertions getSoftAssert() {
@@ -260,16 +241,16 @@ public class Hooks {
     return testData;
   }
 
-  public static RemoteWebDriver getDriver() {
-    logger().traceEntry();
-    logger().traceExit(driver);
-    return driver;
+  public static void addDriver(RemoteWebDriver driver) {
+    storedDrivers.add(driver);
+    drivers.set(driver);
+    logger().info(String.format("Created and Added Driver: [%s]", Hooks.getDriver()));
   }
 
-  private static void setDriver(RemoteWebDriver driver) {
+  public static RemoteWebDriver getDriver() {
     logger().traceEntry();
-    logger().traceExit(driver);
-    Hooks.driver = driver;
+    logger().traceExit(drivers);
+    return drivers.get();
   }
   // </editor-fold>
 }
