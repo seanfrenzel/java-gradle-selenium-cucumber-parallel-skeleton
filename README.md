@@ -11,9 +11,23 @@ Resources
 - [Cucumber-JVM](https://cucumber.io/docs/reference/jvm)
 - [Cucumber-JVM API](http://cucumber.github.io/api/cucumber/jvm/javadoc/)
 
+## Git Clone Project
+
+##### You will need to download and install Git
+- [Install Git For Windows Here](https://git-scm.com/download/win) 
+    - Use default options or as preferred.
+1. When on the projects github page click on `clone or download button`(_green button below contributor_) and copy the `HTTP` url
+    - if you are having trouble finding it then copy this url and replace the `placeholderUsername` with your own
+        - `https://github.com/placeholderUsername/java-gradle-selenium-cucumber-parallel-skeleton.git`
+2. Open your CLI(command line interface) and `cd`(change directory) into the `directory/folder` where you want to download this project (It is recommended to create a directory for your git projects). 
+    - Ex: `cd git-projects`
+3. Use git clone to download the project with the following command with your username
+    - `git clone https://github.com/placeholderUsername/java-selenium-cucumber-skeleton.git`
 
 Setup
 ---
+
+## `Download Java`
 [Download and get Java installed from here](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
 (you can use other jdk's. This is to just get you started)
 
@@ -36,32 +50,24 @@ export PATH=${PATH}:$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/pla
 ## `Windows OS`:
 **Set windows variables:**
 1. open _powershell as admin_ > enter `rundll32 sysdm.cpl,EditEnvironmentVariables` to open windows variables
-2. set the following for `SYSTEM VARIABLES`
+2. Create and set following for `SYSTEM VARIABLES`. You will click on the `NEW` button to create a variable.
 ```
 Variable name -> JAVA_HOME
-Variable path -> path\to\javaSDK
+Variable path -> path\to\javaSDK (put path to your actual sdk which is usually in your ProgramFiles folder)
 ```
 3. Select `Path` in `SYSTEM Variables` and click `Edit` then click `New` and enter the following for the variables created:
  ```
 %JAVA_HOME%\bin
 ```
+3. Close the admin powershell instance
 
-## Git Clone Project
+## **Install** [IntelliJ](https://www.jetbrains.com/idea/download):       
 
-##### You will need to download and install Git
-- [Install Git For Windows Here](https://git-scm.com/download/win) 
-1. Click on `clone or download button`(_green button below contributor_) and copy the `HTTP` url
-    - if you are having trouble finding it then copy this url and replace the `placeholderUsername` with your own
-        - `https://github.com/placeholderUsername/java-selenium-cucumber-skeleton.git`
-2. Open your CLI(command line interface) and `cd` into the `directory/folder` where you want to download this project (It is recommended to create a directory for your git projects). 
-    - Ex: `cd git-projects`
-3. Use git clone to download the project with the following command with your username
-    - `git clone https://github.com/placeholderUsername/java-selenium-cucumber-skeleton.git`
-
-##**Install** [IntelliJ](https://www.jetbrains.com/idea/download):       
+When intellij is open do the following 
+`Import Project` > `find where you git cloned the project to and select it` > `Gradle` > continue through the steps to import project. 
 
 Install cucumber plugins
-_`Preferences/Settings`_ > _`Plugins`_ > _`Marketplace`_:
+- `File` > `Preferences/Settings`_ > _`Plugins`_ > _`Marketplace`_:
 - _`Cucumber for Java`_
 - _`google-java-format`_
     - **How to use**: Enable the plugin in `Other Settings` 
@@ -81,9 +87,9 @@ Usage:
 **Running tests**
 ----  
 **Gradle Wrapper Command Line Test Runs** 
-- Open your `Terminal` and `cd`(_**change directory**_) to `project path` on your system
+- Open your `Terminal/Powershell`(if you open the terminal from intelliJ you don't need to cd) and `cd`(_**change directory**_) to `project path` on your system
 - Example: `C:\Users\yourUserHere\git-projects\projectName`
-    - now that we are in the project directory we can use `gradlew tasks` to get more info about the project and how to run tests with it. Locate the cucumber groups!  
+    - now that we are in the project directory we can use `gradlew tasks` to get more info about the project and how to run tests with it. Scroll up and locate the cucumber groups for project info!  
         - **NOTE:** use `.\gradlew` with powershell !!!
         
 - Reports and screenshots are located here for local viewing!!! ```C:\Users\yourUserHere\git-projects\projectName\TestResults```
