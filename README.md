@@ -64,7 +64,7 @@ Variable path -> path\to\javaSDK (put path to your actual sdk which is usually i
 ## **Install** [IntelliJ](https://www.jetbrains.com/idea/download):       
 
 When intellij is open do the following 
-`Import Project` > `find where you git clond project to and select it` > `Gradle` > continue through the steps to import project. 
+`Import Project` > `find where you git cloned the project to and select it` > `Gradle` > continue through the steps to import project. 
 
 Install cucumber plugins
 - `File` > `Preferences/Settings`_ > _`Plugins`_ > _`Marketplace`_:
