@@ -36,7 +36,7 @@ public class ExamplePage extends PageObjectBase {
   }
 
   public void openNeatGif() {
-    waitForStale(gifs.get(0), 1);
+    waitForStale(gifs.get(0), 5);
     click(gifs.get(0));
 
     /**

@@ -25,11 +25,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static core.utilities.Tools.*;
-import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
-import static org.openqa.selenium.support.ui.ExpectedConditions.*;
 
 public abstract class PageObjectBase {
   public RemoteWebDriver driver;
@@ -64,6 +62,7 @@ public abstract class PageObjectBase {
   /** Modules Initialization */
   public ModuleInitializations module() {
     logger().traceEntry();
+
     ModuleInitializations moduleInitializations = new ModuleInitializations();
     logger().traceExit(moduleInitializations);
     return moduleInitializations;
@@ -73,6 +72,7 @@ public abstract class PageObjectBase {
   /** @param url to load with defined ENVIRONMENT */
   public void loadEnv(String url) {
     logger().traceEntry();
+
     Assert.assertTrue("The ENV given was incorrect or not found", url.contains(Config.getEnv()));
     driver.get(url);
     assertEquals(url, driver.getCurrentUrl());
@@ -82,7 +82,9 @@ public abstract class PageObjectBase {
   /** @param element to scroll into view */
   public void scrollIntoView(WebElement element) {
     logger().traceEntry();
+
     driver.executeScript("arguments[0].scrollIntoView(true);", element);
+
     logger().traceExit();
   }
 
@@ -92,16 +94,20 @@ public abstract class PageObjectBase {
    */
   public void jsSetValue(WebElement element, String value) {
     logger().traceEntry();
+
     JavascriptExecutor js = driver;
     js.executeScript(String.format("arguments[0].value='%s';", value), element);
+
     logger().traceExit();
   }
 
   /** @param element that we want to clear the value from */
   public void jsClear(WebElement element) {
     logger().traceEntry();
+
     JavascriptExecutor js = driver;
     js.executeScript("arguments[0].value = '';", element);
+
     logger().traceExit();
   }
 
@@ -111,6 +117,7 @@ public abstract class PageObjectBase {
    */
   public void click(WebElement element) {
     Tools.logger().traceEntry();
+
     JavascriptExecutor jse = driver;
     try {
       element.click();
@@ -127,6 +134,7 @@ public abstract class PageObjectBase {
    */
   public void clickSequentially(List<WebElement> elems, Integer index, Integer amount) {
     logger().traceEntry();
+
     int clicked = 0;
 
     while (clicked < amount) {
@@ -134,6 +142,7 @@ public abstract class PageObjectBase {
       clicked++;
       index++;
     }
+
     logger().traceExit();
   }
 
@@ -143,12 +152,14 @@ public abstract class PageObjectBase {
    */
   public void clickMultiple(WebElement element, Integer amount) {
     logger().traceEntry();
+
     int clicked = 0;
 
     while (clicked < amount) {
       element.click();
       clicked++;
     }
+
     logger().traceExit();
   }
 
@@ -160,6 +171,7 @@ public abstract class PageObjectBase {
    */
   public void fillDataTableFields(DataTable table) {
     logger().traceEntry();
+
     table
         .asMaps()
         .forEach(
@@ -171,6 +183,7 @@ public abstract class PageObjectBase {
 
                       getElement(header).sendKeys(replacedRandomCellValue);
                     }));
+
     logger().traceExit();
   }
   // </editor-fold>
@@ -186,6 +199,7 @@ public abstract class PageObjectBase {
   @SuppressWarnings("unchecked")
   public WebElement getElement(String elementField) {
     logger().traceEntry();
+
     WebElement field = (WebElement) getField(elementField);
     logger().traceExit(field);
     return field;
@@ -198,6 +212,7 @@ public abstract class PageObjectBase {
   @SuppressWarnings("unchecked")
   public List<WebElement> getElements(String elementsField) {
     logger().traceEntry();
+
     List<WebElement> field = (List<WebElement>) getField(elementsField);
     logger().traceExit(field);
     return field;
@@ -210,8 +225,9 @@ public abstract class PageObjectBase {
   @SuppressWarnings("unchecked")
   public List<WebElement> getElements(List<String> elementFields) {
     logger().traceEntry();
+
     List<WebElement> list =
-        elementFields.stream().map(this::getElement).distinct().collect(toList());
+        elementFields.stream().map(this::getElement).distinct().collect(Collectors.toList());
     logger().traceExit(list);
     return list;
   }
@@ -223,6 +239,7 @@ public abstract class PageObjectBase {
   @SuppressWarnings("unchecked")
   private Object getField(String fieldName) {
     logger().traceEntry();
+
     String target = toCamelCase(fieldName);
     Class aClass = null;
 
@@ -248,6 +265,7 @@ public abstract class PageObjectBase {
    */
   public WebElement getElementWithText(List<WebElement> elements, String text) {
     logger().traceEntry();
+
     WebElement webElement =
         elements.stream()
             .filter(elem -> elem.getText().trim().equalsIgnoreCase(text))
@@ -270,6 +288,7 @@ public abstract class PageObjectBase {
   public WebElement getElementWithAttribute(
       List<WebElement> elements, String attribute, String attrValue) {
     logger().traceEntry();
+
     WebElement webElement =
         elements.stream()
             .filter(elem -> elem.getAttribute(attribute).trim().equalsIgnoreCase(attrValue))
@@ -291,8 +310,12 @@ public abstract class PageObjectBase {
    */
   public List<WebElement> getElementsFromTextList(List<WebElement> elems, List<String> strings) {
     logger().traceEntry();
+
     List<WebElement> list =
-        strings.stream().map(text -> getElementWithText(elems, text)).distinct().collect(toList());
+        strings.stream()
+            .map(text -> getElementWithText(elems, text))
+            .distinct()
+            .collect(Collectors.toList());
     logger().traceExit(list);
     return list;
   }
@@ -308,6 +331,7 @@ public abstract class PageObjectBase {
    */
   public WebElement assertDisplayed(WebElement element, int waitSec) {
     logger().traceEntry();
+
     fluentWait(waitSec, 1)
         .until(
             ExpectedConditions.or(
@@ -328,7 +352,10 @@ public abstract class PageObjectBase {
     logger().traceEntry();
 
     List<WebElement> list =
-        elements.stream().map(element -> assertDisplayed(element, 1)).distinct().collect(toList());
+        elements.stream()
+            .map(element -> assertDisplayed(element, 1))
+            .distinct()
+            .collect(Collectors.toList());
 
     return logger().traceExit(list);
   }
@@ -344,6 +371,7 @@ public abstract class PageObjectBase {
   public boolean doesElementContainAttribute(
       WebElement element, String attribute, String attrValue) {
     logger().traceEntry();
+
     boolean contains = element.getAttribute(attribute).contains(attrValue);
     return logger().traceExit(contains);
   }
@@ -359,6 +387,7 @@ public abstract class PageObjectBase {
   public boolean assertElementsContainAttribute(
       List<WebElement> elements, String attribute, String attrValue) {
     logger().traceEntry();
+
     boolean result =
         elements.stream().allMatch(elem -> elem.getAttribute(attribute).contains(attrValue));
     return logger().traceExit(result);
@@ -367,12 +396,14 @@ public abstract class PageObjectBase {
   /** @param element to verify as non existing */
   public void assertElementDoesNotExist(WebElement element) {
     logger().traceEntry();
+
     try {
       element.isDisplayed();
       throw new IllegalArgumentException("Element was unexpectedly present");
     } catch (NoSuchElementException | IndexOutOfBoundsException | ElementNotVisibleException e) {
       // Element does not exist
     }
+
     logger().traceExit();
   }
 
@@ -383,9 +414,11 @@ public abstract class PageObjectBase {
    */
   public boolean assertTextNotFound(List<WebElement> elements, String text) {
     logger().traceEntry();
+
     Assert.assertTrue(
         String.format("Text was found: [%s]", text),
         elements.stream().noneMatch(element -> element.getText().equalsIgnoreCase(text)));
+
     logger().traceExit();
     return true;
   }
@@ -397,9 +430,11 @@ public abstract class PageObjectBase {
    */
   public boolean assertTextFound(List<WebElement> elements, String text) {
     logger().traceEntry();
+
     Assert.assertTrue(
         String.format("Text was not found: [%s]", text),
         elements.stream().anyMatch(element -> element.getText().equalsIgnoreCase(text)));
+
     logger().traceExit();
     return true;
   }
@@ -411,9 +446,11 @@ public abstract class PageObjectBase {
    */
   public void assertTextFoundSoftly(List<WebElement> elements, String text) {
     logger().traceEntry();
+
     assertIsTrueSoftly(
         String.format("Text was not found: [%s]", text),
         elements.stream().anyMatch(element -> element.getText().equalsIgnoreCase(text)));
+
     logger().traceExit();
   }
 
@@ -425,8 +462,10 @@ public abstract class PageObjectBase {
    */
   public void assertTextFoundSoftly(List<WebElement> elements, String text, String errMsg) {
     logger().traceEntry();
+
     assertIsTrueSoftly(
         errMsg, elements.stream().anyMatch(element -> element.getText().equalsIgnoreCase(text)));
+
     logger().traceExit();
   }
 
@@ -436,7 +475,9 @@ public abstract class PageObjectBase {
    */
   public void assertTextNotFoundSoftly(List<String> strings, String text) {
     logger().traceEntry();
+
     soft.assertThat(strings.stream().noneMatch(string -> string.equalsIgnoreCase(text)));
+
     logger().traceExit();
   }
 
@@ -446,9 +487,11 @@ public abstract class PageObjectBase {
    */
   public void assertTextNotFoundInStringList(List<String> strings, String text) {
     logger().traceEntry();
+
     Assert.assertTrue(
         String.format("Text was found: [%s]", text),
         strings.stream().noneMatch(string -> string.equalsIgnoreCase(text)));
+
     logger().traceExit();
   }
 
@@ -458,11 +501,13 @@ public abstract class PageObjectBase {
    */
   public void assertSubstringFoundInList(List<WebElement> elements, String text) {
     logger().traceEntry();
+
     List<String> targetText = Collections.singletonList(text);
     List<String> elementsText = buildStringListFromElemList(elements);
     List<String> substrings = buildSubstringTargetsList(elementsText, targetText);
 
     valuesContained(substrings, targetText);
+
     logger().traceExit();
   }
 
@@ -472,6 +517,7 @@ public abstract class PageObjectBase {
    */
   public void assertTextContains(List<String> strings, String text) {
     logger().traceEntry();
+
     String substringBetweenBrackets;
     String formattedList;
     String errorMsg;
@@ -484,6 +530,7 @@ public abstract class PageObjectBase {
             formattedList, text);
 
     Assert.assertTrue(errorMsg, strings.stream().anyMatch(string -> string.contains(text)));
+
     logger().traceExit();
   }
 
@@ -493,9 +540,11 @@ public abstract class PageObjectBase {
    */
   public void assertTextContainsSoftly(List<String> strings, String text) {
     logger().traceEntry();
+
     assertIsTrueSoftly(
         String.format("List %s did not contain [%s]", strings, text),
         strings.stream().anyMatch(string -> string.contains(text)));
+
     logger().traceExit();
   }
 
@@ -507,11 +556,13 @@ public abstract class PageObjectBase {
    */
   public void assertEquals(Object expected, Object actual) {
     logger().traceEntry();
+
     String errorMsg =
         String.format(
             "Expected and Actual were not equal%n%nExpected:[%s]%nActual:  [%s]%n%n",
             expected, actual);
     Assert.assertEquals(errorMsg, expected, actual);
+
     logger().traceExit();
   }
 
@@ -524,19 +575,22 @@ public abstract class PageObjectBase {
    */
   public void assertIsTrueSoftly(String errorMsg, boolean condition) {
     Tools.logger().traceEntry();
+
     String trace = null;
 
     if (!condition) {
       Throwable throwable = new Throwable();
       trace =
-          format(
+          String.format(
               "[Class -> %s]%n[Method -> %s]%n[Line -> %d] %n NOTE! -> Screenshots located in folder TestResults/ScreenShots",
               throwable.getStackTrace()[1].getClassName(),
               throwable.getStackTrace()[1].getMethodName(),
               throwable.getStackTrace()[1].getLineNumber());
       takeSoftAssertFileScreenshot(throwable);
     }
-    soft.assertThat(condition).withFailMessage(format("%nError: %s%n%s", errorMsg, trace)).isTrue();
+    soft.assertThat(condition)
+        .withFailMessage(String.format("%nError: %s%n%s", errorMsg, trace))
+        .isTrue();
     Tools.logger().traceExit();
   }
 
@@ -549,7 +603,7 @@ public abstract class PageObjectBase {
     try {
       File scrFile = ((TakesScreenshot) Hooks.getDriver()).getScreenshotAs(OutputType.FILE);
       String fileName =
-          format(
+          String.format(
                   "./TestResults/ScreenShots/Class[%s]_Method[%s]_Line[%s]_Time[%s].png",
                   throwable.getStackTrace()[1].getClassName(),
                   throwable.getStackTrace()[1].getMethodName(),
@@ -569,6 +623,7 @@ public abstract class PageObjectBase {
    */
   public void valuesContained(List<String> actualValues, List<String> expectedValues) {
     logger().traceEntry();
+
     List<String> values = new ArrayList<>(expectedValues);
 
     String errorMsg =
@@ -576,6 +631,7 @@ public abstract class PageObjectBase {
             "%n%s - actual values did not contain %n%s - expected values ", actualValues, values);
 
     Assert.assertTrue(errorMsg, actualValues.containsAll(values));
+
     logger().traceExit();
   }
 
@@ -585,6 +641,7 @@ public abstract class PageObjectBase {
    */
   public void valuesNotContained(List<String> actualValues, List<String> expectedValues) {
     logger().traceEntry();
+
     List<String> values = new ArrayList<>(expectedValues);
 
     String errorMsg =
@@ -592,6 +649,7 @@ public abstract class PageObjectBase {
             "%n%s -  actual values contained %n%s -  unexpected values ", actualValues, values);
 
     Assert.assertFalse(errorMsg, actualValues.containsAll(values));
+
     logger().traceExit();
   }
   // </editor-fold>
@@ -603,9 +661,10 @@ public abstract class PageObjectBase {
    */
   public void waitForListLoad(List<WebElement> elements, Integer waitForSeconds) {
     Tools.logger().traceEntry();
+
     boolean elementIsEmpty = false;
 
-    Tools.logger().info(format("Waiting [%ss] for list to load", waitForSeconds));
+    Tools.logger().info(String.format("Waiting [%ss] for list to load", waitForSeconds));
     try {
       elementIsEmpty = elements.isEmpty();
       Assert.assertFalse(elementIsEmpty);
@@ -625,6 +684,7 @@ public abstract class PageObjectBase {
     Assert.assertFalse(
         String.format("List did not load after waiting [%s]", waitForSeconds.toString()),
         elementIsEmpty);
+
     logger().traceExit();
   }
 
@@ -636,7 +696,13 @@ public abstract class PageObjectBase {
    */
   public void waitForStale(WebElement element, int seconds) {
     logger().traceEntry();
-    fluentWait(seconds, 1).until(stalenessOf(element));
+
+    fluentWait(seconds, 1)
+        .until(
+            ExpectedConditions.or(
+                ExpectedConditions.stalenessOf(element),
+                ExpectedConditions.not(ExpectedConditions.stalenessOf(element))));
+
     logger().traceExit();
   }
 
@@ -648,7 +714,10 @@ public abstract class PageObjectBase {
    */
   public void waitForRefresh(WebElement element, int seconds) {
     logger().traceEntry();
-    fluentWait(seconds, 1).until(refreshed(ExpectedConditions.visibilityOf(element)));
+
+    fluentWait(seconds, 1)
+        .until(ExpectedConditions.refreshed(ExpectedConditions.visibilityOf(element)));
+
     logger().traceExit();
   }
 
@@ -658,19 +727,23 @@ public abstract class PageObjectBase {
    */
   public void waitForInvisibility(WebElement element, int seconds) {
     logger().traceEntry();
+
     fluentWait(seconds, 1).until(invisibilityOfElement(element));
+
     logger().traceExit();
   }
 
   /** seconds to sleep thread -> ONLY USE THIS WHEN ABSOLUTELY NECESSARY. KEEP AS PRIVATE!!! */
   private void sleep(int seconds) {
     logger().traceEntry();
+
     int sec = seconds * 1000;
     try {
       Thread.sleep(sec);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
+
     logger().traceExit();
   }
 
@@ -682,6 +755,7 @@ public abstract class PageObjectBase {
    */
   public static ExpectedCondition<Boolean> invisibilityOfElement(final WebElement element) {
     logger().traceEntry();
+
     return driver -> {
       try {
         boolean isDisplayed = !element.isDisplayed();
@@ -703,8 +777,10 @@ public abstract class PageObjectBase {
   public void waitForAttributeToBeContained(
       WebElement element, String attribute, String attributeToBe, int secondsToWait) {
     logger().traceEntry();
+
     fluentWait(secondsToWait, 1)
         .until(ExpectedConditions.attributeContains(element, attribute, attributeToBe));
+
     logger().traceExit();
   }
 
@@ -717,8 +793,12 @@ public abstract class PageObjectBase {
   public void waitForAttributeToNotBeContained(
       WebElement element, String attribute, String attributeToBe, int secondsToWait) {
     logger().traceEntry();
+
     fluentWait(secondsToWait, 1)
-        .until(not(ExpectedConditions.attributeContains(element, attribute, attributeToBe)));
+        .until(
+            ExpectedConditions.not(
+                ExpectedConditions.attributeContains(element, attribute, attributeToBe)));
+
     logger().traceExit();
   }
 
@@ -730,6 +810,7 @@ public abstract class PageObjectBase {
    */
   public FluentWait<WebDriver> fluentWait(Integer seconds, Integer pollTime) {
     logger().traceEntry();
+
     assertWaitLimit(seconds);
 
     FluentWait<WebDriver> fluentWait =
@@ -748,6 +829,7 @@ public abstract class PageObjectBase {
         .info(
             String.format(
                 "Waiting:[%ss] and pollingEvery:[%ss] for condition to be met", seconds, pollTime));
+
     logger().traceExit(fluentWait);
     return fluentWait;
   }
