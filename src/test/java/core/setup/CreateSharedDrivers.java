@@ -3,6 +3,7 @@ package core.setup;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.ElementNotInteractableException;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
@@ -15,7 +16,7 @@ public class CreateSharedDrivers {
   /** initialize this class to create a driver if driver is not null */
   public CreateSharedDrivers() {
     if (Hooks.getDriver() == null) {
-      createDriver();
+      createAndSetAddedDriver();
     }
   }
 
@@ -35,15 +36,24 @@ public class CreateSharedDrivers {
 
                           logger().info(String.format("Driver [%s] will be quit", driver));
 
-                          driver.quit();
+                          try {
+                            driver.quit();
+                          } catch (Exception e) {
+                            driver = null;
+                          }
                         })));
   }
 
   /**
-   * creates a driver and adds it to the storedDrivers. If you want to run this on a
-   * selenium-standalone server then use -DisRemote="true" to create the RemoteWebDriver with given
-   * capabilities from the json
+   * creates a driver, adds it to to storedDrivers which sets the driver to the current driver being
+   * added
    */
+  private void createAndSetAddedDriver() {
+    logger().traceEntry();
+    createDriver();
+    logger().traceExit();
+  }
+
   private void createDriver() {
     if (Config.IS_REMOTE) {
       try {
@@ -63,6 +73,17 @@ public class CreateSharedDrivers {
           Hooks.addDriver(new ChromeDriver());
           Hooks.getDriver().manage().window().maximize();
           break;
+        case "chromeHeadless":
+          WebDriverManager.chromedriver().setup();
+          System.setProperty("webdriver.chrome.silentOutput", "true");
+          Hooks.addDriver(
+              new ChromeDriver(
+                  new ChromeOptions()
+                      .setHeadless(true)
+                      .addArguments("no-sandbox")
+                      .addArguments("window-size=1920,1080")));
+          Hooks.getDriver().manage().window().maximize();
+          break;
         case "firefox":
           WebDriverManager.firefoxdriver().setup();
           System.setProperty("webdriver.firefox.silentOutput", "true");
@@ -80,6 +101,8 @@ public class CreateSharedDrivers {
           Hooks.addDriver(new InternetExplorerDriver());
           Hooks.getDriver().manage().window().maximize();
           break;
+        default:
+          throw new IllegalStateException("Unexpected value: " + Config.getDeviceName());
       }
     }
   }

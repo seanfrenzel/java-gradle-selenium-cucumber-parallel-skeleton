@@ -24,13 +24,11 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static core.utilities.Tools.getDate;
 import static core.utilities.Tools.logger;
-import static java.lang.String.format;
 
 public class Hooks {
 
-  public Scenario currentScenario;
+  public static ThreadLocal<Scenario> scenarios = new ThreadLocal<>();
   private boolean setup = false;
   private static boolean reportsCreated = false;
 
@@ -53,49 +51,43 @@ public class Hooks {
   /**
    * logic performed before scenario start
    *
-   * @param scenario current scenario instance
    * @throws MalformedURLException
    */
   @Before(order = 1)
   public void beforeScenario(Scenario scenario) throws MalformedURLException {
-    if (!scenario.getName().equals("Help")) {
-      Logger.getLogger("org.openqa.selenium").setLevel(Level.OFF);
-      manageResults();
+    Hooks.setScenario(scenario);
+    Logger.getLogger("org.openqa.selenium").setLevel(Level.OFF);
+    manageResults();
 
-      config = new Config();
-      config.setLogLevel(config.logLevel);
-      config.setCapabilities();
-      softAssert = new SoftAssertions();
-      setupEnvironment(scenario);
+    config = new Config();
+    config.setLogLevel(config.logLevel);
+    config.setCapabilities();
+    softAssert = new SoftAssertions();
+    setupEnvironment();
 
-      if (config.parallel)
-        System.out.printf(
-            "[Thread %2d] Running -> [Scenario: %s]%n",
-            Thread.currentThread().getId(), currentScenario.getName());
+    if (config.parallel)
+      System.out.printf(
+          "[Thread %2d] Running -> [Scenario: %s]%n",
+          Thread.currentThread().getId(), Hooks.getScenario().getName());
 
-      new CreateSharedDrivers();
-      logger().traceExit();
-    }
+    new CreateSharedDrivers();
+    logger().traceExit();
   }
 
-  /**
-   * logic performed after scenario is complete
-   *
-   * @param scenario current scenario instance
-   */
+  /** logic performed after scenario is complete */
   @After(order = 2)
-  public void afterScenario(Scenario scenario) {
+  public void afterScenario() {
     logger().traceEntry();
 
     try {
-      if (scenario.isFailed()) {
+      if (!softAssert.errorsCollected().isEmpty()) softAssert.assertAll();
 
+      if (Hooks.getScenario().isFailed()) {
         if (config.parallel) {
           System.out.printf(
-              "[Thread %2d] Running -> [Scenario: %s] - FAILED%n",
-              Thread.currentThread().getId(), currentScenario.getName());
+              "[Thread %2d] Running -> [Scenario: %s] - FAILED - (*_*)%n",
+              Thread.currentThread().getId(), Hooks.getScenario().getName());
         }
-
         takeScreenshot();
       }
 
@@ -103,10 +95,10 @@ public class Hooks {
 
     } finally {
 
-      if (config.parallel && !scenario.isFailed()) {
+      if (config.parallel && !Hooks.getScenario().isFailed()) {
         System.out.printf(
-            "[Thread %2d] Running -> [Scenario: %s] - PASSED%n",
-            Thread.currentThread().getId(), currentScenario.getName());
+            "[Thread %2d] Running -> [Scenario: %s] - PASSED - (^_^)%n",
+            Thread.currentThread().getId(), Hooks.getScenario().getName());
       }
 
       if (getDriver() != null) {
@@ -122,15 +114,14 @@ public class Hooks {
   }
 
   // <editor-fold desc="Non Annotation Methods">
+
   /**
    * Sets up environment and capabilities for given properties and data.
    *
-   * @param scenario instanced use of Scenario to get state of current scenario
    * @throws MalformedURLException
    */
-  private void setupEnvironment(Scenario scenario) throws MalformedURLException {
+  private void setupEnvironment() throws MalformedURLException {
     if (!setup) {
-      currentScenario = scenario;
 
       url = new URL(config.getUrl());
       logger().trace(String.format("URL is:%s", url));
@@ -147,7 +138,7 @@ public class Hooks {
   }
 
   /** takes screenshot in multiple formats */
-  public void takeScreenshot() {
+  public static void takeScreenshot() {
     logger().traceEntry();
     fileScreenshot();
     embedScreenshot();
@@ -155,14 +146,16 @@ public class Hooks {
   }
 
   /** takes screenshot in file format */
-  private void fileScreenshot() {
+  private static void fileScreenshot() {
     logger().traceEntry();
     try {
       File scrFile = ((TakesScreenshot) Hooks.getDriver()).getScreenshotAs(OutputType.FILE);
       String fileName =
-          format(
+          String.format(
                   "./TestResults/ScreenShots/Feature_%s_Line%s_Time[%s].png",
-                  currentScenario.getName(), currentScenario.getLine(), getDate("hh-mm-ss", 0))
+                  Hooks.getScenario().getName(),
+                  Hooks.getScenario().getLine(),
+                  Tools.getDate("hh-mm-ss", 0))
               .replaceAll(" ", "-");
 
       FileUtils.copyFile(scrFile, new File(fileName));
@@ -172,12 +165,12 @@ public class Hooks {
   }
 
   /** takes screenshot and embeds it */
-  private void embedScreenshot() {
+  public static void embedScreenshot() {
     logger().traceEntry();
     try {
       final byte[] screenshot =
           ((TakesScreenshot) Hooks.getDriver()).getScreenshotAs(OutputType.BYTES);
-      currentScenario.embed(screenshot, "image/png");
+      Hooks.getScenario().embed(screenshot, "image/png");
     } catch (WebDriverException | NullPointerException e) {
       System.out.println("Failed to take embed Screenshot");
     }
@@ -190,13 +183,13 @@ public class Hooks {
     if (!reportsCreated) {
       try {
         FileUtils.deleteDirectory(new File("./TestResults"));
-      } catch (IOException e) {
+      } catch (IOException | IllegalArgumentException e) {
         // Ignored files not present
       }
 
       try {
         FileUtils.forceMkdir(new File("./TestResults/ScreenShots"));
-      } catch (IOException e) {
+      } catch (IOException | IllegalArgumentException e) {
         System.err.println("Failed to create TestResults file directory");
       }
 
@@ -206,13 +199,14 @@ public class Hooks {
   }
 
   /** skips a scenario if not valid for current run */
-  private void skipScenario(Scenario scenario, String errorReason) {
+  private void skipScenario(String errorReason) {
     logger().traceEntry();
     try {
       Assume.assumeTrue(false);
     } catch (AssumptionViolatedException e) {
       throw new AssumptionViolatedException(
-          Tools.border("- Scenario: %s%n- Was skipped for: %s", scenario.getName(), errorReason));
+          Tools.border(
+              "- Scenario: %s%n- Was skipped for: %s", Hooks.getScenario().getName(), errorReason));
     }
     logger().traceExit();
   }
@@ -221,9 +215,9 @@ public class Hooks {
   // <editor-fold desc="@Tag Hooks">
   /** Skip Scenario if Tagged @wip */
   @Before("@wip")
-  public void wipSkip(Scenario scenario) {
+  public void wipSkip() {
     logger().traceEntry();
-    skipScenario(scenario, "being @wip");
+    skipScenario("being @wip");
     logger().traceExit();
   }
   // </editor-fold>-
@@ -244,13 +238,23 @@ public class Hooks {
   public static void addDriver(RemoteWebDriver driver) {
     storedDrivers.add(driver);
     drivers.set(driver);
-    logger().info(String.format("Created and Added Driver: [%s]", Hooks.getDriver()));
+    System.out.printf(
+        "[Thread %2d] Created and Added Driver: [%s]%n",
+        Thread.currentThread().getId(), Hooks.getDriver());
   }
 
   public static RemoteWebDriver getDriver() {
     logger().traceEntry();
     logger().traceExit(drivers);
     return drivers.get();
+  }
+
+  public static void setScenario(Scenario scenario) {
+    scenarios.set(scenario);
+  }
+
+  public static Scenario getScenario() {
+    return scenarios.get();
   }
   // </editor-fold>
 }

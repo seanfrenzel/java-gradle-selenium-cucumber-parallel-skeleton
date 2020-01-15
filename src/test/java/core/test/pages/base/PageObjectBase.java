@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static core.utilities.Tools.*;
+import static java.lang.String.format;
 
 public abstract class PageObjectBase {
   public RemoteWebDriver driver;
@@ -575,22 +576,24 @@ public abstract class PageObjectBase {
    */
   public void assertIsTrueSoftly(String errorMsg, boolean condition) {
     Tools.logger().traceEntry();
-
     String trace = null;
 
     if (!condition) {
+      Hooks.takeScreenshot();
+
       Throwable throwable = new Throwable();
       trace =
-          String.format(
-              "[Class -> %s]%n[Method -> %s]%n[Line -> %d] %n NOTE! -> Screenshots located in folder TestResults/ScreenShots",
-              throwable.getStackTrace()[1].getClassName(),
+          format(
+              "Trace: [%s] [%s] [%d]",
+              throwable
+                  .getStackTrace()[1]
+                  .getClassName()
+                  .substring(throwable.getStackTrace()[1].getClassName().lastIndexOf('.') + 1),
               throwable.getStackTrace()[1].getMethodName(),
               throwable.getStackTrace()[1].getLineNumber());
-      takeSoftAssertFileScreenshot(throwable);
     }
-    soft.assertThat(condition)
-        .withFailMessage(String.format("%nError: %s%n%s", errorMsg, trace))
-        .isTrue();
+
+    soft.assertThat(condition).withFailMessage(format("%nError: %s%n%s", errorMsg, trace)).isTrue();
     Tools.logger().traceExit();
   }
 
@@ -694,15 +697,10 @@ public abstract class PageObjectBase {
    *
    * @param element to wait for staleness of
    */
-  public void waitForStale(WebElement element, int seconds) {
+  public void waitForNotStale(WebElement element, int seconds) {
     logger().traceEntry();
-
-    fluentWait(seconds, 1)
-        .until(
-            ExpectedConditions.or(
-                ExpectedConditions.stalenessOf(element),
-                ExpectedConditions.not(ExpectedConditions.stalenessOf(element))));
-
+    fluentWait(seconds, 1).until(ExpectedConditions.not(ExpectedConditions.stalenessOf(element)));
+    sleep((long) 500);
     logger().traceExit();
   }
 
@@ -740,6 +738,19 @@ public abstract class PageObjectBase {
     int sec = seconds * 1000;
     try {
       Thread.sleep(sec);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+
+    logger().traceExit();
+  }
+
+  /** seconds to sleep thread -> ONLY USE THIS WHEN ABSOLUTELY NECESSARY. KEEP AS PRIVATE!!! */
+  private void sleep(long milliseconds) {
+    logger().traceEntry();
+
+    try {
+      Thread.sleep(milliseconds);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
