@@ -4,7 +4,11 @@
     "chromeOptions": {
       "args": [
         "--start-maximized"
-      ]
+      ],
+      "prefs": {
+        "profile.default_content_setting_values.cookies": 1,
+        "profile.block_third_party_cookies": false
+      }
     }
   },
   "chromeHeadless": {
@@ -14,7 +18,11 @@
         "--headless",
         "--no-sandbox",
         "--window-size=1920,1080"
-      ]
+      ],
+      "prefs": {
+        "profile.default_content_setting_values.cookies": 1,
+        "profile.block_third_party_cookies": false
+      }
     }
   },
   "firefox": {

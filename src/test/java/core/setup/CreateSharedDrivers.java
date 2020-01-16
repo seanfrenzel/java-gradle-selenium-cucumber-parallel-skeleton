@@ -70,7 +70,7 @@ public class CreateSharedDrivers {
         case "chrome":
           WebDriverManager.chromedriver().setup();
           System.setProperty("webdriver.chrome.silentOutput", "true");
-          Hooks.addDriver(new ChromeDriver());
+          Hooks.addDriver(new ChromeDriver(new ChromeOptions().addArguments("start-maximized")));
           Hooks.getDriver().manage().window().maximize();
           break;
         case "chromeHeadless":
@@ -86,7 +86,8 @@ public class CreateSharedDrivers {
           break;
         case "firefox":
           WebDriverManager.firefoxdriver().setup();
-          System.setProperty("webdriver.firefox.silentOutput", "true");
+          System.setProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE, "false");
+          System.setProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE, "/dev/null");
           Hooks.addDriver(new FirefoxDriver());
           Hooks.getDriver().manage().window().maximize();
           break;

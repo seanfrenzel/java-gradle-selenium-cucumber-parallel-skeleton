@@ -101,10 +101,20 @@ public class Hooks {
             Thread.currentThread().getId(), Hooks.getScenario().getName());
       }
 
-      if (getDriver() != null) {
-        getDriver().manage().deleteAllCookies();
-        getDriver().executeScript("window.sessionStorage.clear();");
-        getDriver().executeScript("window.localStorage.clear();");
+      RemoteWebDriver driver = getDriver();
+
+      if (driver != null) {
+        try {
+          driver.executeScript("window.sessionStorage.clear();");
+          driver.executeScript("window.localStorage.clear();");
+          driver.manage().deleteAllCookies();
+        } catch (Exception e) {
+          System.out.printf(
+              "[Thread %2d] Driver [%s] will be quit. Storage clear failed",
+              Thread.currentThread().getId(), driver);
+          Hooks.storedDrivers.remove(driver);
+          driver.quit();
+        }
       }
 
       /* drivers are shutdown when the test run is completed from shutdown hook in CreateSharedDrivers */
